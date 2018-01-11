@@ -1,0 +1,63 @@
+version: 0.3.{build}
+image: Visual Studio 2017
+
+
+environment:
+  matrix:
+    - PlatformToolset: v141_xp
+
+platform:
+    - x64
+    - Win32
+
+configuration:
+    - Release
+    #- Debug
+
+install:
+    - if "%platform%"=="x64" set archi=amd64
+    - if "%platform%"=="Win32" set archi=x86
+    - if "%PlatformToolset%"=="v141_xp" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %archi%
+    #- if "%PlatformToolset%"=="v140_xp" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %archi%
+
+before_build:
+- ps: |
+    Write-Output "Configuration: $env:CONFIGURATION"
+    Write-Output "Platform: $env:PLATFORM"
+    $generator = switch ($env:PLATFORMTOOLSET)
+    {
+        "v141_xp" {"Visual Studio 15 2017"}
+        "v140_xp" {"Visual Studio 14 2015"}
+        "v120_xp" {"Visual Studio 12 2013"}
+    }
+    if ($env:PLATFORM -eq "x64")
+    {
+        $generator = "$generator Win64"
+    }
+
+build_script:
+    - cd "%APPVEYOR_BUILD_FOLDER%"
+    - mkdir _build
+    - cd _build
+
+    - ps: |
+        cmake -G "$generator" -T "$env:PLATFORMTOOLSET" ..
+        if ($LastExitCode -ne 0) {
+            throw "Exec: $ErrorMessage"
+        }
+        & cmake --build . --config $env:CONFIGURATION -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+        if ($LastExitCode -ne 0) {
+            throw "Exec: $ErrorMessage"
+        }
+
+after_build:
+    - cd "%APPVEYOR_BUILD_FOLDER%"
+    - ps: >-
+
+        if ($env:CONFIGURATION -eq "Release" -and $env:PLATFORM -eq "x64") {
+            Push-AppveyorArtifact "_build\Release\empty-files-as-unicode.64-bit.dll" -FileName "empty-files-as-unicode.64-bit.dll"
+        }
+
+        if ($env:CONFIGURATION -eq "Release" -and $env:PLATFORM -eq "WIN32") {
+            Push-AppveyorArtifact "_build\Release\empty-files-as-unicode.32-bit.dll" -FileName "empty-files-as-unicode.32-bit.dll"
+        }
