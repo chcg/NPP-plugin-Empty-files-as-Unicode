@@ -19,7 +19,7 @@
 #       define STDLIB_COMPILER_SUPPORTS_CPP17       1
         // One must include ordinary <filesystem> but the impl is in namespace
         // "experimental", neither fish nor fowl; it's a special case.
-#       define STDLIB_HOIST_UP_FILESYSTEM_NAMESPACE
+//#       define STDLIB_HOIST_UP_FILESYSTEM_NAMESPACE
 #   endif
 #endif
 

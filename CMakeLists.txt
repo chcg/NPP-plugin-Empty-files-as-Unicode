@@ -1,4 +1,4 @@
-﻿cmake_minimum_required( VERSION 3.9 )
+﻿cmake_minimum_required( VERSION 3.10 )
 
 project( "Notepad++ encoding fix plugin" )
 
@@ -10,7 +10,6 @@ else()
     message( FATAL_ERROR "The selected toolchain isn't recognized as 32-bit or 64-bit." )
 endif()
 
-add_compile_options("/std:c++latest")
 
 include_directories(
     source/reusable
@@ -25,5 +24,8 @@ add_library( empty-files-as-unicode.${PLUGIN_NAME_SUFFIX} MODULE
     )
 
 #requires cmake 3.10
-#set_property(TARGET empty-files-as-unicode.${PLUGIN_NAME_SUFFIX} PROPERTY CXX_STANDARD 17)
-#set_property(TARGET empty-files-as-unicode.${PLUGIN_NAME_SUFFIX} PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET empty-files-as-unicode.${PLUGIN_NAME_SUFFIX} PROPERTY CXX_STANDARD 17)
+set_property(TARGET empty-files-as-unicode.${PLUGIN_NAME_SUFFIX} PROPERTY CXX_STANDARD_REQUIRED ON)
+
+# avoid compiler warning C4996: 'std::codecvt_mode': warning STL4017: std::wbuffer_convert, std::wstring_convert, and the <codecvt> header (containing std::codecvt_mode, std::codecvt_utf8, std::codecvt_utf16, and std::codecvt_utf8_utf16) are deprecated in C++17.
+ADD_DEFINITIONS(-D_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING)

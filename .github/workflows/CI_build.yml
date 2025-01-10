@@ -1,0 +1,45 @@
+name: CI_build
+
+on: [push, pull_request]
+
+jobs:
+  build_windows:
+
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_configuration: [Release, Debug]
+        build_platform: [x64, ARM64, Win32]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: generate cmake
+      run: |
+           cmake -G "Visual Studio 17 2022" -A ${{ matrix.build_platform }} -B _build
+
+    - name: build cmake
+      run: |
+           cmake --build _build --config ${{ matrix.build_configuration }}
+
+    - name: Archive artifacts for ${{ matrix.build_platform }}
+      if: matrix.build_platform == 'x64' && matrix.build_configuration == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+          name: plugin_dll_x64
+          path: _build\${{ matrix.build_configuration }}\empty-files-as-unicode.64-bit.dll
+
+    - name: Archive artifacts for ${{ matrix.build_platform }}
+      if: matrix.build_platform == 'ARM64' && matrix.build_configuration == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+          name: plugin_dll_ARM64
+          path: _build\${{ matrix.build_configuration }}\empty-files-as-unicode.64-bit.dll
+
+    - name: Archive artifacts for ${{ matrix.build_platform }}
+      if: matrix.build_platform == 'Win32' && matrix.build_configuration == 'Release'
+      uses: actions/upload-artifact@v4
+      with:
+          name: plugin_dll_x86
+          path: _build\${{ matrix.build_configuration }}\empty-files-as-unicode.32-bit.dll
